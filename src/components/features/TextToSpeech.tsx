@@ -165,7 +165,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ onClose }) => {
           {/* Voice Settings */}
           <div className="grid md:grid-cols-3 gap-6">
             <div>
-              <label htmlFor="voice-select" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="voice-select" className="block text-sm font-medium subheading-text mb-2">
                 Voice
               </label>
               <select
@@ -186,7 +186,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ onClose }) => {
             </div>
 
             <div>
-              <label htmlFor="rate-slider" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="rate-slider" className="block text-sm font-medium subheading-text mb-2">
                 Speed: {rate.toFixed(1)}x
               </label>
               <input
@@ -203,7 +203,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ onClose }) => {
             </div>
 
             <div>
-              <label htmlFor="pitch-slider" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="pitch-slider" className="block text-sm font-medium subheading-text mb-2">
                 Pitch: {pitch.toFixed(1)}
               </label>
               <input
@@ -258,7 +258,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ onClose }) => {
 
         {/* Polite Expressions */}
         <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-3">Polite Expressions</h3>
+          <h3 className="heading-text-green text-lg mb-3">Polite Expressions</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {[
               "Please.",
@@ -288,7 +288,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ onClose }) => {
 
         {/* Asking for Help */}
         <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-3">Asking for Help</h3>
+          <h3 className="heading-text-pink text-lg mb-3">Asking for Help</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {[
               "Can you help me?",
@@ -318,7 +318,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ onClose }) => {
 
         {/* Basic Needs */}
         <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-3">Basic Needs</h3>
+          <h3 className="heading-text-violet text-lg mb-3">Basic Needs</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {[
               "I am hungry.",
@@ -348,7 +348,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ onClose }) => {
 
         {/* Daily Conversations */}
         <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-3">Daily Conversations</h3>
+          <h3 className="heading-text-blue text-lg mb-3">Daily Conversations</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {[
               "What's your name?",
@@ -378,7 +378,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ onClose }) => {
 
         {/* Social Phrases */}
         <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-3">Social Phrases</h3>
+          <h3 className="heading-text-pink text-lg mb-3">Social Phrases</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {[
               "Let's go.",
@@ -407,7 +407,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ onClose }) => {
 
         {/* Emergency Situations */}
         <div>
-          <h3 className="text-lg font-medium text-gray-800 mb-3">Emergency Situations</h3>
+          <h3 className="heading-text text-lg mb-3" style={{color: '#ff4444', textShadow: '0 0 15px #ff4444'}}>Emergency Situations</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {[
               "Call the doctor!",

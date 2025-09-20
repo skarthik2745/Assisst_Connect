@@ -118,14 +118,16 @@ const Header: React.FC<HeaderProps> = ({ activeView, onNavigate, user }) => {
                     className="w-6 h-6 rounded-full flex items-center justify-center border overflow-hidden"
                     style={{
                       border: '1px solid rgba(0, 229, 255, 0.3)',
-                      background: user?.user_metadata?.avatar_url 
-                        ? `url(${user.user_metadata.avatar_url})` 
-                        : 'rgba(0, 229, 255, 0.2)',
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center'
+                      background: 'rgba(0, 229, 255, 0.2)'
                     }}
                   >
-                    {!user?.user_metadata?.avatar_url && (
+                    {user?.user_metadata?.avatar_url ? (
+                      <img 
+                        src={user.user_metadata.avatar_url} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
                       <User size={12} style={{color: '#00e5ff'}} />
                     )}
                   </div>

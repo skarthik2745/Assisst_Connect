@@ -85,6 +85,36 @@
   letter-spacing: 0.05em;
 }
 
+.heading-text-yellow {
+  color: var(--neon-yellow);
+  font-weight: 800;
+  font-family: 'Orbitron', 'Exo 2', sans-serif;
+  text-align: center;
+  font-size: 1.5rem;
+  text-shadow: 0 0 20px rgba(255, 255, 0, 0.8), 0 0 40px rgba(255, 255, 0, 0.4);
+  letter-spacing: 0.05em;
+}
+
+.heading-text-blue {
+  color: var(--neon-blue);
+  font-weight: 800;
+  font-family: 'Orbitron', 'Exo 2', sans-serif;
+  text-align: center;
+  font-size: 1.5rem;
+  text-shadow: 0 0 20px rgba(0, 153, 255, 0.8), 0 0 40px rgba(0, 153, 255, 0.4);
+  letter-spacing: 0.05em;
+}
+
+.heading-text-cyan {
+  color: var(--neon-cyan);
+  font-weight: 800;
+  font-family: 'Orbitron', 'Exo 2', sans-serif;
+  text-align: center;
+  font-size: 1.5rem;
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.8), 0 0 40px rgba(0, 229, 255, 0.4);
+  letter-spacing: 0.05em;
+}
+
 .subheading-text {
   color: var(--soft-white);
   font-family: 'Exo 2', sans-serif;
