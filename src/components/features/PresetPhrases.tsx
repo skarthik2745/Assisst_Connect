@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Volume2, MessageCircle, Plus, MoreHorizontal, Edit3, Trash2, Pin, Search, X } from 'lucide-react';
+import { usePresetPhrases } from '../../hooks/useSupabase';
 
 interface PresetPhrasesProps {
   onClose: () => void;
@@ -383,23 +384,31 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
   const [speakingPhrase, setSpeakingPhrase] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState<string | null>(null);
 
+  const { phrases: dbPhrases, loading, addPhrase: addPhraseToDb } = usePresetPhrases();
+
   useEffect(() => {
-    const savedData = localStorage.getItem('presetPhrases');
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        if (parsed.length < systemCategories.length) {
-          setCategories(systemCategories);
-        } else {
-          setCategories(parsed);
-        }
-      } catch {
-        setCategories(systemCategories);
-      }
+    if (!loading && dbPhrases.length > 0) {
+      // Merge database phrases with system categories
+      const updatedCategories = systemCategories.map(cat => {
+        const dbPhrasesForCategory = dbPhrases.filter(p => p.category === cat.name);
+        const convertedPhrases = dbPhrasesForCategory.map(p => ({
+          id: p.id,
+          text: p.phrase,
+          language: 'en',
+          useCount: p.usage_count || 0,
+          isPinned: false,
+          createdAt: new Date(p.created_at).getTime()
+        }));
+        return {
+          ...cat,
+          phrases: [...cat.phrases, ...convertedPhrases]
+        };
+      });
+      setCategories(updatedCategories);
     } else {
       setCategories(systemCategories);
     }
-  }, []);
+  }, [dbPhrases, loading]);
 
   useEffect(() => {
     localStorage.setItem('presetPhrases', JSON.stringify(categories));
@@ -422,23 +431,31 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
     }
   };
 
-  const addPhrase = () => {
+  const addPhrase = async () => {
     if (!newPhrase.trim()) return;
     
-    const phrase: Phrase = {
-      id: Date.now().toString(),
-      text: newPhrase.trim(),
-      language: 'en',
-      useCount: 0,
-      isPinned: false,
-      createdAt: Date.now()
-    };
+    const categoryName = currentCategory?.name || 'Custom';
     
-    setCategories(prev => prev.map(cat => 
-      cat.id === selectedCategory 
-        ? { ...cat, phrases: [phrase, ...cat.phrases] }
-        : cat
-    ));
+    // Add to database
+    const { error } = await addPhraseToDb(categoryName, newPhrase.trim());
+    
+    if (!error) {
+      // Add to local state
+      const phrase: Phrase = {
+        id: Date.now().toString(),
+        text: newPhrase.trim(),
+        language: 'en',
+        useCount: 0,
+        isPinned: false,
+        createdAt: Date.now()
+      };
+      
+      setCategories(prev => prev.map(cat => 
+        cat.id === selectedCategory 
+          ? { ...cat, phrases: [phrase, ...cat.phrases] }
+          : cat
+      ));
+    }
     
     setNewPhrase('');
     setShowAddPhrase(false);
@@ -494,20 +511,20 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
       <div className="flex items-center mb-8">
         <button
           onClick={onClose}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 mr-6"
+          className="nav-item flex items-center space-x-2 mr-6"
           aria-label="Go back to mute portal"
         >
-          <ArrowLeft size={24} aria-hidden="true" />
+          <ArrowLeft size={24} className="icon-cyan" aria-hidden="true" />
           <span>Back</span>
         </button>
         
         <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-            <MessageCircle size={24} className="text-green-600" aria-hidden="true" />
+          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{background: 'rgba(0, 229, 255, 0.2)', border: '2px solid var(--neon-cyan)'}}>
+            <MessageCircle size={24} className="icon-cyan" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Preset Phrases Dictionary</h1>
-            <p className="text-gray-600">Organized phrases for instant communication</p>
+            <h1 className="heading-text text-3xl">Preset Phrases Dictionary</h1>
+            <p className="paragraph-text">Organized phrases for instant communication</p>
           </div>
         </div>
       </div>
@@ -515,13 +532,18 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
       {/* Search */}
       <div className="mb-6">
         <div className="relative">
-          <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-cyan" />
           <input
             type="text"
             placeholder="Search phrases..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full pl-10 pr-4 py-3 rounded-xl transition-all duration-300"
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(0, 229, 255, 0.3)',
+              color: '#f8fafc'
+            }}
           />
         </div>
       </div>
@@ -529,10 +551,10 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
       {/* Category Pills */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Categories</h2>
+          <h2 className="heading-text-violet text-lg">Categories</h2>
           <button
             onClick={() => setShowAddCategory(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors duration-200"
+            className="btn-primary flex items-center space-x-2 px-4 py-2 rounded-full"
             aria-label="Add new category"
           >
             <Plus size={16} />
@@ -545,19 +567,25 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-colors duration-200 ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${
                 selectedCategory === category.id
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'btn-primary'
+                  : 'glass-card hover:scale-105'
               }`}
+              style={selectedCategory !== category.id ? {color: 'var(--soft-white)'} : {}}
               aria-current={selectedCategory === category.id ? 'page' : undefined}
             >
               <span className="text-sm font-medium">{category.name}</span>
               <span className={`text-xs px-2 py-1 rounded-full ${
                 selectedCategory === category.id
-                  ? 'bg-blue-400 text-white'
-                  : 'bg-gray-200 text-gray-600'
-              }`}>
+                  ? 'text-white'
+                  : 'paragraph-text'
+              }`}
+              style={{
+                background: selectedCategory === category.id 
+                  ? 'rgba(0, 229, 255, 0.3)' 
+                  : 'rgba(255, 255, 255, 0.1)'
+              }}>
                 {category.phrases.length}
               </span>
             </button>
@@ -566,20 +594,20 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
       </div>
 
       {/* Phrases Dictionary */}
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-6 border-b border-gray-200 bg-blue-50">
+      <div className="glass-card overflow-hidden">
+        <div className="p-6" style={{borderBottom: '1px solid rgba(0, 229, 255, 0.2)', background: 'rgba(0, 229, 255, 0.05)'}}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900">
+              <h2 className="heading-text-green text-2xl">
                 {currentCategory?.name}
               </h2>
-              <p className="text-gray-600">
+              <p className="paragraph-text">
                 {filteredPhrases.length} phrases • Click any phrase to speak it instantly
               </p>
             </div>
             <button
               onClick={() => setShowAddPhrase(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+              className="btn-primary-alt flex items-center space-x-2 px-4 py-2"
               aria-label="Add new phrase"
             >
               <Plus size={16} />
@@ -594,20 +622,20 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
               <div key={phrase.id} className="group relative">
                 <button
                   onClick={() => speakPhrase(phrase.text, phrase.id)}
-                  className="w-full p-4 text-left bg-blue-50 hover:bg-blue-100 rounded-xl transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-md transform hover:-translate-y-0.5"
+                  className="w-full p-4 text-left glass-card rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
                   aria-label={`Speak phrase: ${phrase.text}`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      {phrase.isPinned && <Pin size={12} className="text-blue-600" />}
-                      <span className="text-gray-900 font-medium">{phrase.text}</span>
+                      {phrase.isPinned && <Pin size={12} className="icon-cyan" />}
+                      <span className="subheading-text font-medium">{phrase.text}</span>
                     </div>
                     <Volume2 
                       size={16} 
                       className={`transition-opacity duration-200 ${
                         speakingPhrase === phrase.id 
-                          ? 'text-blue-600 opacity-100 animate-pulse' 
-                          : 'text-blue-600 opacity-0 group-hover:opacity-100'
+                          ? 'icon-cyan opacity-100 animate-pulse' 
+                          : 'icon-cyan opacity-0 group-hover:opacity-100'
                       }`}
                       aria-hidden="true" 
                     />
@@ -620,23 +648,24 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
                       e.stopPropagation();
                       setShowMenu(showMenu === phrase.id ? null : phrase.id);
                     }}
-                    className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50"
+                    className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm transition-all duration-300"
+                    style={{background: 'rgba(255, 255, 255, 0.1)'}}
                     aria-label="More options"
                   >
-                    <MoreHorizontal size={12} className="text-gray-600" />
+                    <MoreHorizontal size={12} className="icon-white" />
                   </button>
                   
                   {showMenu === phrase.id && (
-                    <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                    <div className="absolute right-0 top-8 glass-card rounded-lg py-1 z-10">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           togglePin(phrase.id);
                           setShowMenu(null);
                         }}
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center space-x-2"
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-white/10 flex items-center space-x-2 subheading-text transition-colors duration-200"
                       >
-                        <Pin size={12} />
+                        <Pin size={12} className="icon-cyan" />
                         <span>{phrase.isPinned ? 'Unpin' : 'Pin'}</span>
                       </button>
                       
@@ -647,7 +676,8 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
                             deletePhrase(phrase.id);
                             setShowMenu(null);
                           }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center space-x-2 text-red-600"
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-white/10 flex items-center space-x-2 transition-colors duration-200"
+                          style={{color: '#fca5a5'}}
                         >
                           <Trash2 size={12} />
                           <span>Delete</span>
@@ -665,34 +695,40 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
       {/* Add Phrase Modal */}
       {showAddPhrase && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+          <div className="glass-card p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">Add New Phrase</h3>
+              <h3 className="heading-text-cyan text-xl">Add New Phrase</h3>
               <button
                 onClick={() => setShowAddPhrase(false)}
-                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200"
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
+                style={{background: 'rgba(255, 255, 255, 0.1)', color: 'var(--soft-white)'}}
               >
-                <X size={16} />
+                <X size={16} className="icon-white" />
               </button>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium subheading-text mb-2">
                   Phrase Text
                 </label>
                 <textarea
                   value={newPhrase}
                   onChange={(e) => setNewPhrase(e.target.value)}
                   placeholder="Enter your phrase..."
-                  className="w-full h-24 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full h-24 p-3 rounded-lg transition-all duration-300"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(0, 229, 255, 0.3)',
+                    color: '#f8fafc'
+                  }}
                 />
               </div>
               
               <div className="flex space-x-3">
                 <button
                   onClick={addPhrase}
-                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                  className="flex-1 px-4 py-2 btn-primary"
                 >
                   Add Phrase
                 </button>
@@ -702,13 +738,13 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
                       speakPhrase(newPhrase, 'test');
                     }
                   }}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200"
+                  className="px-4 py-2 btn-neon-green"
                 >
                   Test
                 </button>
                 <button
                   onClick={() => setShowAddPhrase(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200"
+                  className="px-4 py-2 btn-secondary"
                 >
                   Cancel
                 </button>
@@ -721,20 +757,21 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
       {/* Add Category Modal */}
       {showAddCategory && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+          <div className="glass-card p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">Add New Category</h3>
+              <h3 className="heading-text-violet text-xl">Add New Category</h3>
               <button
                 onClick={() => setShowAddCategory(false)}
-                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200"
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
+                style={{background: 'rgba(255, 255, 255, 0.1)', color: 'var(--soft-white)'}}
               >
-                <X size={16} />
+                <X size={16} className="icon-white" />
               </button>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium subheading-text mb-2">
                   Category Name
                 </label>
                 <input
@@ -742,20 +779,25 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   placeholder="Enter category name..."
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 rounded-lg transition-all duration-300"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(124, 58, 237, 0.3)',
+                    color: '#f8fafc'
+                  }}
                 />
               </div>
               
               <div className="flex space-x-3">
                 <button
                   onClick={addCategory}
-                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                  className="flex-1 px-4 py-2 btn-primary-alt"
                 >
                   Create Category
                 </button>
                 <button
                   onClick={() => setShowAddCategory(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200"
+                  className="px-4 py-2 btn-secondary"
                 >
                   Cancel
                 </button>

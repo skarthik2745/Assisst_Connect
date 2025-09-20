@@ -3,9 +3,14 @@ import LandingPage from './components/LandingPage';
 import DeafPortal from './components/DeafPortal';
 import MutePortal from './components/MutePortal';
 import Header from './components/Header';
+import Profile from './components/Profile';
+import Login from './components/auth/Login';
+import Signup from './components/auth/Signup';
 import { MediaManager, AccessibilityUtils } from './utils/performance';
+import { useAuth } from './hooks/useAuth';
+import supabase from './lib/supabase';
 
-export type ActiveView = 'landing' | 'deaf' | 'mute';
+export type ActiveView = 'landing' | 'deaf' | 'mute' | 'profile' | 'login' | 'signup';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
@@ -54,22 +59,41 @@ class ErrorBoundary extends React.Component<
 
 // Loading Component
 const LoadingSpinner: React.FC = () => (
-  <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-    <div className="text-center">
-      <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-      <p className="text-gray-600 font-medium">Loading AssistConnect...</p>
+  <>
+    <div className="animated-gradient-bg"></div>
+    <div className="content-overlay min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="heading-text font-medium">Loading AssistConnect...</p>
+      </div>
     </div>
-  </div>
+  </>
 );
 
 function App() {
-  const [activeView, setActiveView] = useState<ActiveView>('landing');
+  const [activeView, setActiveView] = useState<ActiveView>('login');
   const [isLoading, setIsLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
+
+  // Reset to landing page when user logs in
+  React.useEffect(() => {
+    if (user && (activeView === 'login' || activeView === 'signup')) {
+      setActiveView('landing');
+    }
+  }, [user, activeView]);
 
   useEffect(() => {
     // Initialize app
     const initializeApp = async () => {
       try {
+        // Test Supabase connection
+        const { data, error } = await supabase.from('preset_phrases').select('count').limit(1);
+        if (error) {
+          console.error('❌ Supabase connection failed:', error.message);
+        } else {
+          console.log('✅ Supabase connected successfully!');
+        }
+        
         // Announce app load to screen readers
         AccessibilityUtils.announce('AssistConnect application loaded');
         
@@ -91,16 +115,39 @@ function App() {
     };
   }, []);
 
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return <LoadingSpinner />;
   }
 
   const renderView = () => {
+    // If user is not logged in, show only auth pages
+    if (!user) {
+      switch (activeView) {
+        case 'signup':
+          return (
+            <Signup 
+              onClose={() => setActiveView('login')} 
+              onSwitchToLogin={() => setActiveView('login')}
+            />
+          );
+        default:
+          return (
+            <Login 
+              onClose={() => setActiveView('login')} 
+              onSwitchToSignup={() => setActiveView('signup')}
+            />
+          );
+      }
+    }
+
+    // If user is logged in, show main app
     switch (activeView) {
       case 'deaf':
         return <DeafPortal onBack={() => setActiveView('landing')} />;
       case 'mute':
         return <MutePortal onBack={() => setActiveView('landing')} />;
+      case 'profile':
+        return <Profile onBack={() => setActiveView('landing')} />;
       default:
         return <LandingPage onSelectPortal={setActiveView} />;
     }
@@ -108,8 +155,9 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Header activeView={activeView} onNavigate={setActiveView} />
+      <div className="animated-gradient-bg"></div>
+      <div className="content-overlay min-h-screen">
+        {user && <Header activeView={activeView} onNavigate={setActiveView} user={user} />}
         <main role="main" aria-label="Main content">
           <Suspense fallback={<LoadingSpinner />}>
             {renderView()}

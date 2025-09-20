@@ -88,75 +88,79 @@ const MutePortal: React.FC<MutePortalProps> = ({ onBack }) => {
       <div className="flex items-center mb-8">
         <button
           onClick={onBack}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 mr-6"
+          className="nav-item flex items-center space-x-2 mr-6"
           aria-label="Go back to main page"
         >
-          <ArrowLeft size={24} aria-hidden="true" />
+          <ArrowLeft size={24} className="icon-cyan" aria-hidden="true" />
           <span>Back</span>
         </button>
         
         <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-            <Volume2 size={24} className="text-purple-600" aria-hidden="true" />
+          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{background: 'rgba(255, 0, 128, 0.2)', border: '2px solid var(--neon-pink)'}}>
+            <Volume2 size={24} className="icon-pink" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Mute User Portal</h1>
-            <p className="text-gray-600">AI-powered voice communication tools</p>
+            <h1 className="heading-text-pink text-3xl">Mute User Portal</h1>
+            <p className="paragraph-text">AI-powered voice communication tools</p>
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <section className="bg-purple-50 rounded-2xl p-6 mb-8" role="region" aria-labelledby="quick-actions">
-        <h2 id="quick-actions" className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+      <section className="glass-card-pink p-6 mb-8" role="region" aria-labelledby="quick-actions">
+        <h2 id="quick-actions" className="heading-text-pink text-xl mb-4">Quick Actions</h2>
         <div className="grid grid-cols-3 gap-4">
           <button 
-            className="flex flex-col items-center space-y-2 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200"
+            className="glass-card flex flex-col items-center space-y-2 p-4"
             aria-label="Quick text-to-speech"
             onClick={() => setActiveFeature('text-to-speech')}
           >
-            <Volume2 size={24} className="text-purple-500" aria-hidden="true" />
-            <span className="text-sm font-medium">Speak</span>
+            <Volume2 size={24} className="icon-pink" aria-hidden="true" />
+            <span className="text-sm font-medium subheading-text">Speak</span>
           </button>
           
           <button 
-            className="flex flex-col items-center space-y-2 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200"
+            className="glass-card flex flex-col items-center space-y-2 p-4"
             aria-label="Access preset phrases"
             onClick={() => setActiveFeature('preset-phrases')}
           >
-            <MessageCircle size={24} className="text-green-500" aria-hidden="true" />
-            <span className="text-sm font-medium">Phrases</span>
+            <MessageCircle size={24} className="icon-cyan" aria-hidden="true" />
+            <span className="text-sm font-medium subheading-text">Phrases</span>
           </button>
           
           <button 
-            className="flex flex-col items-center space-y-2 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200"
+            className="glass-card flex flex-col items-center space-y-2 p-4"
             aria-label="Express emotions"
             onClick={() => setActiveFeature('emotion-comm')}
           >
-            <Smile size={24} className="text-yellow-500" aria-hidden="true" />
-            <span className="text-sm font-medium">Emotions</span>
+            <Smile size={24} className="icon-yellow" aria-hidden="true" />
+            <span className="text-sm font-medium subheading-text">Emotions</span>
           </button>
         </div>
       </section>
 
       {/* Features Grid */}
       <section role="region" aria-labelledby="features-grid">
-        <h2 id="features-grid" className="text-2xl font-bold text-gray-900 mb-8">Communication Tools</h2>
+        <h2 id="features-grid" className="heading-text text-2xl mb-8">Communication Tools</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature) => {
+          {features.map((feature, index) => {
             const IconComponent = feature.icon;
+            const iconColors = ['icon-pink', 'icon-cyan', 'icon-yellow', 'icon-violet'];
+            const borderColors = ['var(--neon-pink)', 'var(--neon-cyan)', 'var(--neon-yellow)', 'var(--neon-violet)'];
+            const bgColors = ['rgba(255, 0, 128, 0.1)', 'rgba(0, 229, 255, 0.1)', 'rgba(255, 255, 0, 0.1)', 'rgba(124, 58, 237, 0.1)'];
+            
             return (
               <button
                 key={feature.id}
                 onClick={() => setActiveFeature(feature.id)}
-                className={`p-6 bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-left w-full ${feature.hoverColor}`}
+                className="glass-card p-6 text-left w-full"
                 aria-label={`Open ${feature.title}: ${feature.description}`}
               >
-                <div className={`w-12 h-12 ${feature.bgColor} rounded-full flex items-center justify-center mb-4`}>
-                  <IconComponent size={24} className={feature.textColor} aria-hidden="true" />
+                <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4" style={{background: bgColors[index % 4], border: `2px solid ${borderColors[index % 4]}`}}>
+                  <IconComponent size={24} className={iconColors[index % 4]} aria-hidden="true" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <h3 className="text-xl font-semibold mb-2 subheading-text">{feature.title}</h3>
+                <p className="paragraph-text">{feature.description}</p>
               </button>
             );
           })}

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Mic, MicOff, ArrowLeft, Copy, Download, Volume2, Globe, Zap } from 'lucide-react';
 import { debounce, SpeechManager, AccessibilityUtils } from '../../utils/performance';
+import { useSpeechSessions } from '../../hooks/useSupabase';
 
 interface SpeechToTextProps {
   onClose: () => void;
@@ -11,6 +12,7 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onClose }) => {
   const [transcript, setTranscript] = useState('');
   const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const { saveSession } = useSpeechSessions();
 
   useEffect(() => {
     // Check for speech recognition support
@@ -23,14 +25,20 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onClose }) => {
       recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = 'en-US';
 
-      recognitionRef.current.onresult = (event: any) => {
+      recognitionRef.current.onresult = async (event: any) => {
         let finalTranscript = '';
         let interimTranscript = '';
 
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
+          const confidence = event.results[i][0].confidence;
+          
           if (event.results[i].isFinal) {
             finalTranscript += transcript;
+            // Save final transcript to database
+            if (transcript.trim()) {
+              await saveSession(transcript.trim(), confidence || 0.9);
+            }
           } else {
             interimTranscript += transcript;
           }
@@ -97,28 +105,28 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onClose }) => {
       <div className="flex items-center mb-8">
         <button
           onClick={onClose}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 mr-6"
+          className="nav-item flex items-center space-x-2 mr-6"
           aria-label="Go back to deaf portal"
         >
-          <ArrowLeft size={24} aria-hidden="true" />
+          <ArrowLeft size={24} className="icon-cyan" aria-hidden="true" />
           <span>Back</span>
         </button>
         
         <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-            <Mic size={24} className="text-blue-600" aria-hidden="true" />
+          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{background: 'rgba(0, 229, 255, 0.2)', border: '2px solid var(--neon-cyan)'}}>
+            <Mic size={24} className="icon-cyan" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Speech-to-Text</h1>
-            <p className="text-gray-600">Real-time conversation captioning</p>
+            <h1 className="heading-text text-3xl">Speech-to-Text</h1>
+            <p className="paragraph-text">Real-time conversation captioning</p>
           </div>
         </div>
       </div>
 
       {/* Main Interface */}
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+      <div className="glass-card overflow-hidden">
         {/* Control Panel */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+        <div className="p-6 text-white" style={{background: 'linear-gradient(135deg, var(--neon-cyan), var(--neon-violet))'}}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button
@@ -162,12 +170,12 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onClose }) => {
         {/* Transcript Area */}
         <div className="p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">Live Transcript</h2>
+            <h2 className="heading-text-green text-xl">Live Transcript</h2>
             <div className="flex space-x-2">
               <button
                 onClick={speakText}
                 disabled={!transcript}
-                className="flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-neon-green flex items-center space-x-2 px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Read transcript aloud"
               >
                 <Volume2 size={16} aria-hidden="true" />
@@ -177,7 +185,7 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onClose }) => {
               <button
                 onClick={copyText}
                 disabled={!transcript}
-                className="flex items-center space-x-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-secondary flex items-center space-x-2 px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Copy transcript to clipboard"
               >
                 <Copy size={16} aria-hidden="true" />
@@ -187,17 +195,21 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onClose }) => {
           </div>
           
           <div 
-            className="min-h-64 max-h-96 overflow-y-auto p-4 bg-gray-50 rounded-xl border border-gray-200"
+            className="min-h-64 max-h-96 overflow-y-auto p-4 rounded-xl"
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(0, 229, 255, 0.3)'
+            }}
             role="log"
             aria-live="polite"
             aria-label="Speech transcript"
           >
             {transcript ? (
-              <p className="text-gray-900 text-lg leading-relaxed whitespace-pre-wrap">
+              <p className="subheading-text text-lg leading-relaxed whitespace-pre-wrap">
                 {transcript}
               </p>
             ) : (
-              <p className="text-gray-500 text-center italic">
+              <p className="paragraph-text text-center italic">
                 {isSupported 
                   ? 'Transcript will appear here when you start speaking...'
                   : 'Speech recognition is not supported in this browser. Please use Chrome, Safari, or Edge.'
@@ -208,19 +220,19 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onClose }) => {
         </div>
 
         {/* Features */}
-        <div className="border-t border-gray-200 p-6 bg-gray-50">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Additional Features</h3>
+        <div className="p-6" style={{borderTop: '1px solid rgba(0, 229, 255, 0.2)', background: 'rgba(0, 229, 255, 0.05)'}}>
+          <h3 className="heading-text-pink text-lg mb-4">Additional Features</h3>
           <div className="grid md:grid-cols-3 gap-4">
-            <div className="flex items-center space-x-3 text-gray-600">
-              <Globe size={20} className="text-blue-500" aria-hidden="true" />
+            <div className="flex items-center space-x-3 subheading-text">
+              <Globe size={20} className="icon-blue" aria-hidden="true" />
               <span>Multilingual support</span>
             </div>
-            <div className="flex items-center space-x-3 text-gray-600">
-              <Zap size={20} className="text-purple-500" aria-hidden="true" />
+            <div className="flex items-center space-x-3 subheading-text">
+              <Zap size={20} className="icon-violet" aria-hidden="true" />
               <span>AI noise filtering</span>
             </div>
-            <div className="flex items-center space-x-3 text-gray-600">
-              <Download size={20} className="text-green-500" aria-hidden="true" />
+            <div className="flex items-center space-x-3 subheading-text">
+              <Download size={20} className="icon-green" aria-hidden="true" />
               <span>Export transcripts</span>
             </div>
           </div>
@@ -228,9 +240,9 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onClose }) => {
       </div>
 
       {/* Instructions */}
-      <div className="mt-8 bg-blue-50 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-3">How to Use</h3>
-        <ul className="space-y-2 text-blue-800" role="list">
+      <div className="mt-8 glass-card-green p-6">
+        <h3 className="heading-text-green text-lg mb-3">How to Use</h3>
+        <ul className="space-y-2 subheading-text" role="list">
           <li>• Click the microphone button to start listening</li>
           <li>• Speak naturally - the system will transcribe in real-time</li>
           <li>• Use the "Speak" button to have the system read text aloud</li>

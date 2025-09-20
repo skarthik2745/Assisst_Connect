@@ -1,29 +1,41 @@
 import React from 'react';
-import { Home, Volume2, VolumeX, Settings, HelpCircle } from 'lucide-react';
+import { Home, Volume2, VolumeX, User, LogIn } from 'lucide-react';
 import type { ActiveView } from '../App';
 
 interface HeaderProps {
   activeView: ActiveView;
   onNavigate: (view: ActiveView) => void;
+  user?: any;
 }
 
-const Header: React.FC<HeaderProps> = ({ activeView, onNavigate }) => {
+const Header: React.FC<HeaderProps> = ({ activeView, onNavigate, user }) => {
   return (
     <header 
-      className="bg-white shadow-lg border-b-4 border-blue-500"
+      className="shadow-lg border-b-4"
+      style={{
+        background: 'rgba(10, 25, 47, 0.95)',
+        backdropFilter: 'blur(20px)',
+        borderBottomColor: 'var(--neon-cyan)'
+      }}
       role="banner"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-xl" aria-hidden="true">AC</span>
+            <div 
+              className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300"
+              style={{
+                background: 'linear-gradient(135deg, var(--neon-cyan), var(--neon-violet))',
+                boxShadow: '0 0 20px rgba(0, 229, 255, 0.3)'
+              }}
+            >
+              <span className="text-white font-bold text-xl font-orbitron" aria-hidden="true">AC</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="heading-text text-2xl">
                 AssistConnect
               </h1>
-              <p className="text-sm text-gray-600">Inclusive Accessibility Platform</p>
+              <p className="text-sm" style={{color: 'var(--muted-white)'}}>Inclusive Accessibility Platform</p>
             </div>
           </div>
 
@@ -34,62 +46,112 @@ const Header: React.FC<HeaderProps> = ({ activeView, onNavigate }) => {
           >
             <button
               onClick={() => onNavigate('landing')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                activeView === 'landing'
-                  ? 'bg-blue-100 text-blue-700 shadow-md'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              className={`nav-item flex items-center space-x-2 ${
+                activeView === 'landing' ? 'text-cyan-400' : ''
               }`}
               aria-label="Go to home page"
               aria-current={activeView === 'landing' ? 'page' : undefined}
             >
-              <Home size={20} aria-hidden="true" />
+              <Home size={20} className="icon-cyan" aria-hidden="true" />
               <span>Home</span>
             </button>
 
             <button
               onClick={() => onNavigate('deaf')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                activeView === 'deaf'
-                  ? 'bg-green-100 text-green-700 shadow-md'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              className={`nav-item-green flex items-center space-x-2 ${
+                activeView === 'deaf' ? 'text-green-400' : ''
               }`}
               aria-label="Access Deaf User Portal"
               aria-current={activeView === 'deaf' ? 'page' : undefined}
             >
-              <VolumeX size={20} aria-hidden="true" />
+              <VolumeX size={20} className="icon-green" aria-hidden="true" />
               <span>Deaf Portal</span>
             </button>
 
             <button
               onClick={() => onNavigate('mute')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                activeView === 'mute'
-                  ? 'bg-purple-100 text-purple-700 shadow-md'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              className={`nav-item-pink flex items-center space-x-2 ${
+                activeView === 'mute' ? 'text-pink-400' : ''
               }`}
               aria-label="Access Mute User Portal"
               aria-current={activeView === 'mute' ? 'page' : undefined}
             >
-              <Volume2 size={20} aria-hidden="true" />
+              <Volume2 size={20} className="icon-pink" aria-hidden="true" />
               <span>Mute Portal</span>
             </button>
 
-            <div className="flex items-center space-x-2 ml-6 pl-6 border-l border-gray-200">
-              <button
-                className="p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors duration-200"
-                aria-label="Settings"
-                title="Settings"
-              >
-                <Settings size={20} aria-hidden="true" />
-              </button>
-              
-              <button
-                className="p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors duration-200"
-                aria-label="Help and support"
-                title="Help"
-              >
-                <HelpCircle size={20} aria-hidden="true" />
-              </button>
+
+            {/* Authentication/Profile Section */}
+            <div className="ml-4 sm:ml-6 pl-4 sm:pl-6 border-l" style={{borderColor: 'rgba(0, 229, 255, 0.2)'}}>
+              {user ? (
+                <button
+                  onClick={() => onNavigate('profile')}
+                  className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                  style={{
+                    ...(activeView === 'profile' 
+                      ? {
+                          background: 'rgba(124, 58, 237, 0.2)',
+                          color: '#7c3aed',
+                          border: '1px solid rgba(124, 58, 237, 0.3)',
+                          boxShadow: '0 0 15px rgba(124, 58, 237, 0.3)'
+                        }
+                      : {
+                          color: '#ffffff'
+                        }
+                    )
+                  }}
+                  onMouseEnter={(e) => {
+                    if (activeView !== 'profile') {
+                      e.currentTarget.style.color = '#00e5ff';
+                      e.currentTarget.style.background = 'rgba(0, 229, 255, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeView !== 'profile') {
+                      e.currentTarget.style.color = '#ffffff';
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
+                  aria-label="View Profile"
+                >
+                  <div 
+                    className="w-6 h-6 rounded-full flex items-center justify-center border overflow-hidden"
+                    style={{
+                      border: '1px solid rgba(0, 229, 255, 0.3)',
+                      background: user?.user_metadata?.avatar_url 
+                        ? `url(${user.user_metadata.avatar_url})` 
+                        : 'rgba(0, 229, 255, 0.2)',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    }}
+                  >
+                    {!user?.user_metadata?.avatar_url && (
+                      <User size={12} style={{color: '#00e5ff'}} />
+                    )}
+                  </div>
+                  <span className="hidden sm:inline text-sm sm:text-base">
+                    {user?.user_metadata?.username || 'Profile'}
+                  </span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => onNavigate('login')}
+                  className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                  style={{color: '#ffffff'}}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#00e5ff';
+                    e.currentTarget.style.background = 'rgba(0, 229, 255, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = '#ffffff';
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                  aria-label="Login"
+                >
+                  <LogIn size={16} className="sm:w-5 sm:h-5" aria-hidden="true" />
+                  <span className="hidden sm:inline text-sm sm:text-base">Login</span>
+                </button>
+              )}
             </div>
           </nav>
         </div>

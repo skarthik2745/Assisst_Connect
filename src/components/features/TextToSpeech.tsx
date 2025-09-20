@@ -79,29 +79,29 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ onClose }) => {
       <div className="flex items-center mb-8">
         <button
           onClick={onClose}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 mr-6"
+          className="nav-item flex items-center space-x-2 mr-6"
           aria-label="Go back to mute portal"
         >
-          <ArrowLeft size={24} aria-hidden="true" />
+          <ArrowLeft size={24} className="icon-cyan" aria-hidden="true" />
           <span>Back</span>
         </button>
         
         <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-            <Volume2 size={24} className="text-purple-600" aria-hidden="true" />
+          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{background: 'rgba(255, 0, 128, 0.2)', border: '2px solid var(--neon-pink)'}}>
+            <Volume2 size={24} className="icon-pink" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Text-to-Speech</h1>
-            <p className="text-gray-600">Convert your text to natural speech</p>
+            <h1 className="heading-text-pink text-3xl">Text-to-Speech</h1>
+            <p className="paragraph-text">Convert your text to natural speech</p>
           </div>
         </div>
       </div>
 
       {/* Main Interface */}
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+      <div className="glass-card-pink overflow-hidden">
         {/* Input Area */}
-        <div className="p-6 border-b border-gray-200">
-          <label htmlFor="speech-text" className="block text-lg font-semibold text-gray-900 mb-3">
+        <div className="p-6" style={{borderBottom: '1px solid rgba(255, 0, 128, 0.2)'}}>
+          <label htmlFor="speech-text" className="block text-lg font-semibold mb-3 heading-text-pink">
             Type your message:
           </label>
           <textarea
@@ -110,25 +110,30 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ onClose }) => {
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Enter the text you want to speak aloud..."
-            className="w-full h-40 p-4 border border-gray-300 rounded-xl resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-lg leading-relaxed"
+            className="w-full h-40 p-4 rounded-xl resize-none text-lg leading-relaxed transition-all duration-300"
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 0, 128, 0.3)',
+              color: '#f8fafc'
+            }}
             aria-describedby="speech-help"
           />
-          <p id="speech-help" className="text-sm text-gray-500 mt-2">
+          <p id="speech-help" className="text-sm paragraph-text mt-2">
             Tip: Use punctuation for natural pauses and emphasis.
           </p>
         </div>
 
         {/* Controls */}
-        <div className="p-6 bg-gray-50">
+        <div className="p-6" style={{background: 'rgba(255, 0, 128, 0.05)'}}>
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
             <button
               onClick={speak}
               disabled={!text.trim()}
-              className={`flex items-center space-x-3 px-6 py-3 rounded-xl font-semibold text-lg transition-all duration-200 transform hover:scale-105 ${
+              className={`flex items-center space-x-3 px-6 py-3 rounded-xl font-semibold text-lg transition-all duration-300 ${
                 isSpeaking
-                  ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg'
-                  : 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-lg'
-              } disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
+                  ? 'btn-neon-pink'
+                  : 'btn-primary-alt'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
               aria-label={isSpeaking ? 'Stop speaking' : 'Start speaking'}
             >
               {isSpeaking ? (
@@ -148,7 +153,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ onClose }) => {
               <button
                 onClick={savePhrase}
                 disabled={!text.trim()}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-neon-green flex items-center space-x-2 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Save phrase for later use"
               >
                 <Save size={20} aria-hidden="true" />
@@ -218,12 +223,12 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ onClose }) => {
       </div>
 
       {/* Quick Access Phrases */}
-      <div className="mt-8 bg-white rounded-2xl shadow-lg p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Access Phrases</h2>
+      <div className="mt-8 glass-card p-6">
+        <h2 className="heading-text text-xl mb-6">Quick Access Phrases</h2>
         
         {/* Greetings & Introductions */}
         <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-3">Greetings & Introductions</h3>
+          <h3 className="heading-text-cyan text-lg mb-3">Greetings & Introductions</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {[
               "Hello!",

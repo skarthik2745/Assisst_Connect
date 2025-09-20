@@ -210,33 +210,38 @@ const EmotionCommunication: React.FC<EmotionCommunicationProps> = ({ onClose }) 
       <div className="flex items-center mb-8">
         <button
           onClick={onClose}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 mr-6"
+          className="nav-item flex items-center space-x-2 mr-6"
           aria-label="Go back to mute portal"
         >
-          <ArrowLeft size={24} aria-hidden="true" />
+          <ArrowLeft size={24} className="icon-cyan" aria-hidden="true" />
           <span>Back</span>
         </button>
         
         <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-            <Smile size={24} className="text-yellow-600" aria-hidden="true" />
+          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{background: 'rgba(255, 255, 0, 0.2)', border: '2px solid var(--neon-yellow)'}}>
+            <Smile size={24} className="icon-yellow" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Emotion Communication</h1>
-            <p className="text-gray-600">Express your feelings with visual symbols</p>
+            <h1 className="heading-text text-3xl">Emotion Communication</h1>
+            <p className="paragraph-text">Express your feelings with visual symbols</p>
           </div>
         </div>
       </div>
 
       {/* Custom Message Input */}
-      <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Custom Message</h2>
+      <div className="glass-card-violet p-6 mb-8">
+        <h2 className="heading-text-violet text-xl mb-4">Custom Message</h2>
         <div className="flex space-x-4">
           <textarea
             value={customMessage}
             onChange={(e) => setCustomMessage(e.target.value)}
             placeholder="Type a custom message to speak with emotion..."
-            className="flex-1 h-24 p-4 border border-gray-300 rounded-xl resize-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            className="flex-1 h-24 p-4 rounded-xl resize-none transition-all duration-300"
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(124, 58, 237, 0.3)',
+              color: '#f8fafc'
+            }}
             aria-label="Custom emotion message"
           />
           <button
@@ -247,7 +252,7 @@ const EmotionCommunication: React.FC<EmotionCommunicationProps> = ({ onClose }) 
               }
             }}
             disabled={!customMessage.trim()}
-            className="flex items-center space-x-2 px-6 py-3 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary-alt flex items-center space-x-2 px-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Speak custom message"
           >
             <Volume2 size={20} aria-hidden="true" />
@@ -257,37 +262,71 @@ const EmotionCommunication: React.FC<EmotionCommunicationProps> = ({ onClose }) 
       </div>
 
       {/* Emotion Grid */}
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Choose Your Emotion</h2>
-          <p className="text-gray-600">Select an emotion to express your current feeling</p>
+      <div className="glass-card overflow-hidden">
+        <div className="p-6" style={{borderBottom: '1px solid rgba(255, 255, 0, 0.2)'}}>
+          <h2 className="heading-text-yellow text-xl">Choose Your Emotion</h2>
+          <p className="paragraph-text">Select an emotion to express your current feeling</p>
         </div>
         
         <div className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-            {emotions.map((emotion) => {
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-8">
+            {emotions.map((emotion, index) => {
               const IconComponent = emotion.icon;
+              const neonColors = [
+                '#ffff00',   // happy - yellow
+                '#0099ff',   // sad - blue  
+                '#ff0080',   // love - pink
+                '#ff6600',   // urgent - orange
+                '#7c3aed',   // excited - violet
+                '#ff0080',   // frustrated - pink
+                '#00ff41',   // calm - green
+                '#ff0040',   // angry - red
+                '#00e5ff'    // confused - cyan
+              ];
+              const neonColor = neonColors[index % neonColors.length];
               return (
                 <button
                   key={emotion.id}
                   onClick={() => speakEmotion(emotion)}
-                  className={`p-6 rounded-2xl border-2 transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
-                    selectedEmotion?.id === emotion.id
-                      ? 'border-gray-400 shadow-lg scale-105'
-                      : 'border-gray-200'
-                  } ${emotion.bgColor}`}
+                  className={`glass-card p-6 rounded-2xl transition-all duration-300 transform hover:scale-110 ${
+                    selectedEmotion?.id === emotion.id ? 'scale-105' : ''
+                  }`}
+                  style={{
+                    border: `2px solid ${neonColor}`,
+                    boxShadow: selectedEmotion?.id === emotion.id 
+                      ? `0 0 30px ${neonColor}` 
+                      : `0 0 15px ${neonColor}40`
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = `0 0 25px ${neonColor}`
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = selectedEmotion?.id === emotion.id 
+                      ? `0 0 30px ${neonColor}` 
+                      : `0 0 15px ${neonColor}40`
+                  }}
                   aria-label={`Express ${emotion.label}: ${emotion.message}`}
                 >
                   <div className="text-center">
                     <IconComponent 
                       size={48} 
-                      className={`mx-auto mb-3 ${emotion.color}`} 
+                      className="mx-auto mb-3"
+                      style={{
+                        color: neonColor,
+                        filter: `drop-shadow(0 0 15px ${neonColor})`
+                      }}
                       aria-hidden="true"
                     />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <h3 className="text-lg font-semibold mb-2"
+                        style={{
+                          color: neonColor,
+                          textShadow: `0 0 15px ${neonColor}`,
+                          fontFamily: 'Orbitron, Exo 2, sans-serif',
+                          fontWeight: '800'
+                        }}>
                       {emotion.label}
                     </h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">
+                    <p className="text-sm leading-relaxed subheading-text">
                       {emotion.message}
                     </p>
                   </div>
@@ -300,19 +339,19 @@ const EmotionCommunication: React.FC<EmotionCommunicationProps> = ({ onClose }) 
 
       {/* Recent Emotions */}
       {selectedEmotion && (
-        <div className="mt-8 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Last Expressed Emotion</h3>
-          <div className="flex items-center space-x-4 p-4 bg-white rounded-xl shadow-sm">
-            <div className={`w-12 h-12 ${selectedEmotion.bgColor.split(' ')[0]} rounded-full flex items-center justify-center`}>
-              <selectedEmotion.icon size={24} className={selectedEmotion.color} aria-hidden="true" />
+        <div className="mt-8 glass-card-yellow p-6">
+          <h3 className="heading-text-yellow text-lg mb-4">Last Expressed Emotion</h3>
+          <div className="flex items-center space-x-4 p-4 glass-card rounded-xl">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{background: 'rgba(255, 255, 0, 0.2)', border: '2px solid var(--neon-yellow)'}}>
+              <selectedEmotion.icon size={24} className="icon-yellow" aria-hidden="true" />
             </div>
             <div className="flex-1">
-              <h4 className="font-semibold text-gray-900">{selectedEmotion.label}</h4>
-              <p className="text-gray-600">{customMessage.trim() || selectedEmotion.message}</p>
+              <h4 className="font-semibold subheading-text">{selectedEmotion.label}</h4>
+              <p className="paragraph-text">{customMessage.trim() || selectedEmotion.message}</p>
             </div>
             <button
               onClick={() => speakEmotion(selectedEmotion)}
-              className="flex items-center space-x-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors duration-200"
+              className="btn-neon-yellow flex items-center space-x-2 px-4 py-2"
               aria-label="Speak last emotion again"
             >
               <Volume2 size={16} aria-hidden="true" />
@@ -323,9 +362,9 @@ const EmotionCommunication: React.FC<EmotionCommunicationProps> = ({ onClose }) 
       )}
 
       {/* Instructions */}
-      <div className="mt-8 bg-blue-50 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-3">How to Use Emotion Communication</h3>
-        <ul className="space-y-2 text-blue-800" role="list">
+      <div className="mt-8 glass-card-pink p-6">
+        <h3 className="heading-text-pink text-lg mb-3">How to Use Emotion Communication</h3>
+        <ul className="space-y-2 subheading-text" role="list">
           <li>• Click on any emotion symbol to instantly express that feeling</li>
           <li>• Type a custom message to add personal context to your emotion</li>
           <li>• Different emotions use different voice tones and speeds</li>

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Globe, Mic, Volume2, Copy, RefreshCw, Settings } from 'lucide-react';
+import { useTranslations } from '../../hooks/useSupabase';
 
 interface MultilingualSupportProps {
   onClose: () => void;
@@ -23,6 +24,7 @@ const MultilingualSupport: React.FC<MultilingualSupportProps> = ({ onClose }) =>
   const [isTranslating, setIsTranslating] = useState(false);
   const [currentTranslation, setCurrentTranslation] = useState('');
   const recognitionRef = useRef<any>(null);
+  const { saveTranslation } = useTranslations();
 
   const languages = [
     { code: 'auto', name: 'Auto-detect', flag: '🌐' },
@@ -218,6 +220,9 @@ const MultilingualSupport: React.FC<MultilingualSupportProps> = ({ onClose }) =>
         timestamp: new Date().toLocaleTimeString()
       };
 
+      // Save to database
+      await saveTranslation(text, translatedText, detectedLang, targetLang);
+      
       setTranslations(prev => [translation, ...prev]);
       setCurrentTranslation(translatedText);
       
@@ -274,28 +279,28 @@ const MultilingualSupport: React.FC<MultilingualSupportProps> = ({ onClose }) =>
       <div className="flex items-center mb-8">
         <button
           onClick={onClose}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 mr-6"
+          className="nav-item flex items-center space-x-2 mr-6"
           aria-label="Go back to deaf portal"
         >
-          <ArrowLeft size={24} aria-hidden="true" />
+          <ArrowLeft size={24} className="icon-cyan" aria-hidden="true" />
           <span>Back</span>
         </button>
         
         <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-            <Globe size={24} className="text-blue-600" aria-hidden="true" />
+          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{background: 'rgba(0, 153, 255, 0.2)', border: '2px solid var(--neon-blue)'}}>
+            <Globe size={24} className="icon-blue" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Multilingual Support</h1>
-            <p className="text-gray-600">Real-time translation and multilingual communication</p>
+            <h1 className="heading-text text-3xl">Multilingual Support</h1>
+            <p className="paragraph-text">Real-time translation and multilingual communication</p>
           </div>
         </div>
       </div>
 
       {/* Translation Interface */}
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-8">
+      <div className="glass-card overflow-hidden mb-8">
         {/* Language Selection */}
-        <div className="p-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+        <div className="p-6 text-white" style={{background: 'linear-gradient(135deg, var(--neon-blue), var(--neon-violet))'}}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div>
@@ -347,18 +352,16 @@ const MultilingualSupport: React.FC<MultilingualSupportProps> = ({ onClose }) =>
         </div>
 
         {/* Input/Output Areas */}
-        <div className="grid md:grid-cols-2 gap-0 divide-x divide-gray-200">
+        <div className="grid md:grid-cols-2 gap-0" style={{borderRight: '1px solid rgba(0, 153, 255, 0.2)'}}>
           {/* Input Area */}
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Original Text</h3>
+              <h3 className="heading-text-green text-lg">Original Text</h3>
               <button
                 onClick={startListening}
                 disabled={isListening}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors duration-200 ${
-                  isListening
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                className={`btn-neon-green flex items-center space-x-2 px-4 py-2 ${
+                  isListening ? 'animate-pulse' : ''
                 }`}
                 aria-label={isListening ? 'Listening...' : 'Start voice input'}
               >
@@ -371,28 +374,33 @@ const MultilingualSupport: React.FC<MultilingualSupportProps> = ({ onClose }) =>
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Type or speak your text here..."
-              className="w-full h-40 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full h-40 p-4 rounded-lg resize-none transition-all duration-300"
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(0, 153, 255, 0.3)',
+                color: '#f8fafc'
+              }}
               aria-label="Text to translate"
             />
             
             <button
               onClick={() => translateText()}
               disabled={!inputText.trim() || isTranslating}
-              className="mt-4 w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white py-3 rounded-lg font-semibold transition-colors duration-200"
+              className="mt-4 w-full btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isTranslating ? 'Translating...' : 'Translate'}
             </button>
           </div>
 
           {/* Output Area */}
-          <div className="p-6 bg-gray-50">
+          <div className="p-6" style={{background: 'rgba(0, 153, 255, 0.05)'}}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Translation</h3>
+              <h3 className="heading-text-pink text-lg">Translation</h3>
               {currentTranslation && (
                 <div className="flex space-x-2">
                   <button
                     onClick={() => speakTranslation(currentTranslation, targetLang)}
-                    className="flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors duration-200"
+                    className="btn-neon-green flex items-center space-x-2 px-3 py-2"
                     aria-label="Speak translation"
                   >
                     <Volume2 size={16} aria-hidden="true" />
@@ -401,7 +409,7 @@ const MultilingualSupport: React.FC<MultilingualSupportProps> = ({ onClose }) =>
                   
                   <button
                     onClick={() => copyTranslation(currentTranslation)}
-                    className="flex items-center space-x-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200"
+                    className="btn-secondary flex items-center space-x-2 px-3 py-2"
                     aria-label="Copy translation"
                   >
                     <Copy size={16} aria-hidden="true" />
@@ -411,15 +419,15 @@ const MultilingualSupport: React.FC<MultilingualSupportProps> = ({ onClose }) =>
               )}
             </div>
             
-            <div className="w-full h-40 p-4 bg-white border border-gray-300 rounded-lg">
+            <div className="w-full h-40 p-4 rounded-lg" style={{background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 0, 128, 0.3)'}}>
               {isTranslating ? (
                 <div className="flex items-center justify-center h-full">
-                  <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" aria-hidden="true"></div>
+                  <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{borderColor: 'var(--neon-pink)'}} aria-hidden="true"></div>
                 </div>
               ) : currentTranslation ? (
-                <p className="text-gray-900 text-lg leading-relaxed">{currentTranslation}</p>
+                <p className="subheading-text text-lg leading-relaxed">{currentTranslation}</p>
               ) : (
-                <p className="text-gray-500 italic">Translation will appear here...</p>
+                <p className="paragraph-text italic">Translation will appear here...</p>
               )}
             </div>
           </div>
@@ -427,26 +435,26 @@ const MultilingualSupport: React.FC<MultilingualSupportProps> = ({ onClose }) =>
       </div>
 
       {/* Translation History */}
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Translation History</h2>
-          <p className="text-gray-600">{translations.length} translations</p>
+      <div className="glass-card overflow-hidden">
+        <div className="p-6" style={{borderBottom: '1px solid rgba(0, 153, 255, 0.2)'}}>
+          <h2 className="heading-text text-xl">Translation History</h2>
+          <p className="paragraph-text">{translations.length} translations</p>
         </div>
         
         <div className="max-h-96 overflow-y-auto">
           {translations.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              <Globe size={48} className="mx-auto mb-4 opacity-30" aria-hidden="true" />
+            <div className="p-8 text-center paragraph-text">
+              <Globe size={48} className="mx-auto mb-4 icon-blue opacity-30" aria-hidden="true" />
               <p>No translations yet</p>
               <p className="text-sm">Start translating to see your history here</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div style={{borderTop: '1px solid rgba(0, 153, 255, 0.1)'}}>
               {translations.map((translation) => (
-                <div key={translation.id} className="p-6 hover:bg-gray-50 transition-colors duration-200">
+                <div key={translation.id} className="p-6 hover:bg-white/5 transition-colors duration-200" style={{borderBottom: '1px solid rgba(0, 153, 255, 0.1)'}}>
                   <div className="flex items-start justify-between">
                     <div className="flex-1 space-y-3">
-                      <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <div className="flex items-center space-x-2 text-sm paragraph-text">
                         <span>{translation.timestamp}</span>
                         <span>•</span>
                         <span>
@@ -462,12 +470,12 @@ const MultilingualSupport: React.FC<MultilingualSupportProps> = ({ onClose }) =>
                       
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm font-medium text-gray-600 mb-1">Original</p>
-                          <p className="text-gray-900">{translation.originalText}</p>
+                          <p className="text-sm font-medium paragraph-text mb-1">Original</p>
+                          <p className="subheading-text">{translation.originalText}</p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-600 mb-1">Translation</p>
-                          <p className="text-gray-900 font-medium">{translation.translatedText}</p>
+                          <p className="text-sm font-medium paragraph-text mb-1">Translation</p>
+                          <p className="subheading-text font-medium">{translation.translatedText}</p>
                         </div>
                       </div>
                     </div>
@@ -475,18 +483,20 @@ const MultilingualSupport: React.FC<MultilingualSupportProps> = ({ onClose }) =>
                     <div className="flex items-center space-x-2 ml-4">
                       <button
                         onClick={() => speakTranslation(translation.translatedText, translation.targetLang)}
-                        className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center hover:bg-green-200 transition-colors duration-200"
+                        className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
+                        style={{background: 'rgba(0, 255, 65, 0.2)', border: '1px solid var(--neon-green)'}}
                         aria-label={`Speak translation: ${translation.translatedText}`}
                       >
-                        <Volume2 size={14} className="text-green-600" aria-hidden="true" />
+                        <Volume2 size={14} className="icon-green" aria-hidden="true" />
                       </button>
                       
                       <button
                         onClick={() => copyTranslation(translation.translatedText)}
-                        className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center hover:bg-blue-200 transition-colors duration-200"
+                        className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
+                        style={{background: 'rgba(0, 229, 255, 0.2)', border: '1px solid var(--neon-cyan)'}}
                         aria-label={`Copy translation: ${translation.translatedText}`}
                       >
-                        <Copy size={14} className="text-blue-600" aria-hidden="true" />
+                        <Copy size={14} className="icon-cyan" aria-hidden="true" />
                       </button>
                     </div>
                   </div>
@@ -498,9 +508,9 @@ const MultilingualSupport: React.FC<MultilingualSupportProps> = ({ onClose }) =>
       </div>
 
       {/* Instructions */}
-      <div className="mt-8 bg-blue-50 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-3">Multilingual Features</h3>
-        <ul className="space-y-2 text-blue-800" role="list">
+      <div className="mt-8 glass-card-blue p-6">
+        <h3 className="heading-text-blue text-lg mb-3">Multilingual Features</h3>
+        <ul className="space-y-2 subheading-text" role="list">
           <li>• Real-time translation between 70+ languages</li>
           <li>• Automatic language detection for source text</li>
           <li>• Voice input with speech recognition</li>

@@ -89,66 +89,70 @@ const DeafPortal: React.FC<DeafPortalProps> = ({ onBack }) => {
       <div className="flex items-center mb-8">
         <button
           onClick={onBack}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 mr-6"
+          className="nav-item flex items-center space-x-2 mr-6"
           aria-label="Go back to main page"
         >
-          <ArrowLeft size={24} aria-hidden="true" />
+          <ArrowLeft size={24} className="icon-cyan" aria-hidden="true" />
           <span>Back</span>
         </button>
         
         <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-            <VolumeX size={24} className="text-green-600" aria-hidden="true" />
+          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{background: 'rgba(0, 255, 65, 0.2)', border: '2px solid var(--neon-green)'}}>
+            <VolumeX size={24} className="icon-green" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Deaf User Portal</h1>
-            <p className="text-gray-600">Visual communication tools & alerts</p>
+            <h1 className="heading-text-green text-3xl">Deaf User Portal</h1>
+            <p className="paragraph-text">Visual communication tools & alerts</p>
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <section className="bg-green-50 rounded-2xl p-6 mb-8" role="region" aria-labelledby="quick-actions">
-        <h2 id="quick-actions" className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+      <section className="glass-card-green p-6 mb-8" role="region" aria-labelledby="quick-actions">
+        <h2 id="quick-actions" className="heading-text-green text-xl mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 gap-4">
           <button 
-            className="flex flex-col items-center space-y-2 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200"
+            className="glass-card flex flex-col items-center space-y-2 p-4"
             aria-label="Start speech to text"
             onClick={() => setActiveFeature('speech-to-text')}
           >
-            <Mic size={24} className="text-blue-500" aria-hidden="true" />
-            <span className="text-sm font-medium">Speech to Text</span>
+            <Mic size={24} className="icon-cyan" aria-hidden="true" />
+            <span className="text-sm font-medium subheading-text">Speech to Text</span>
           </button>
           
           <button 
-            className="flex flex-col items-center space-y-2 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200"
+            className="glass-card flex flex-col items-center space-y-2 p-4"
             aria-label="Access multilingual support"
             onClick={() => setActiveFeature('multilingual')}
           >
-            <Globe size={24} className="text-blue-500" aria-hidden="true" />
-            <span className="text-sm font-medium">Translate</span>
+            <Globe size={24} className="icon-green" aria-hidden="true" />
+            <span className="text-sm font-medium subheading-text">Translate</span>
           </button>
         </div>
       </section>
 
       {/* Features Grid */}
       <section role="region" aria-labelledby="features-grid">
-        <h2 id="features-grid" className="text-2xl font-bold text-gray-900 mb-8">Available Features</h2>
+        <h2 id="features-grid" className="heading-text text-2xl mb-8">Available Features</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {features.map((feature) => {
+          {features.map((feature, index) => {
             const IconComponent = feature.icon;
+            const iconColors = ['icon-cyan', 'icon-green', 'icon-pink', 'icon-yellow'];
+            const borderColors = ['var(--neon-cyan)', 'var(--neon-green)', 'var(--neon-pink)', 'var(--neon-yellow)'];
+            const bgColors = ['rgba(0, 229, 255, 0.1)', 'rgba(0, 255, 65, 0.1)', 'rgba(255, 0, 128, 0.1)', 'rgba(255, 255, 0, 0.1)'];
+            
             return (
               <button
                 key={feature.id}
                 onClick={() => setActiveFeature(feature.id)}
-                className={`p-6 bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-left w-full ${feature.hoverColor}`}
+                className="glass-card p-6 text-left w-full"
                 aria-label={`Open ${feature.title}: ${feature.description}`}
               >
-                <div className={`w-12 h-12 ${feature.bgColor} rounded-full flex items-center justify-center mb-4`}>
-                  <IconComponent size={24} className={feature.textColor} aria-hidden="true" />
+                <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4" style={{background: bgColors[index % 4], border: `2px solid ${borderColors[index % 4]}`}}>
+                  <IconComponent size={24} className={iconColors[index % 4]} aria-hidden="true" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <h3 className="text-xl font-semibold mb-2 subheading-text">{feature.title}</h3>
+                <p className="paragraph-text">{feature.description}</p>
               </button>
             );
           })}
