@@ -107,52 +107,38 @@ const DeafPortal: React.FC<DeafPortalProps> = ({ onBack }) => {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <section className="glass-card-green p-6 mb-8" role="region" aria-labelledby="quick-actions">
-        <h2 id="quick-actions" className="heading-text-green text-xl mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <button 
-            className="glass-card flex flex-col items-center space-y-2 p-4"
-            aria-label="Start speech to text"
-            onClick={() => setActiveFeature('speech-to-text')}
-          >
-            <Mic size={24} className="icon-cyan" aria-hidden="true" />
-            <span className="text-sm font-medium subheading-text">Speech to Text</span>
-          </button>
-          
-          <button 
-            className="glass-card flex flex-col items-center space-y-2 p-4"
-            aria-label="Access multilingual support"
-            onClick={() => setActiveFeature('multilingual')}
-          >
-            <Globe size={24} className="icon-green" aria-hidden="true" />
-            <span className="text-sm font-medium subheading-text">Translate</span>
-          </button>
-        </div>
-      </section>
-
       {/* Features Grid */}
       <section role="region" aria-labelledby="features-grid">
-        <h2 id="features-grid" className="heading-text text-2xl mb-8">Available Features</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <h2 id="features-grid" className="heading-text text-2xl mb-8 text-center">Available Features</h2>
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
-            const iconColors = ['icon-cyan', 'icon-green', 'icon-pink', 'icon-yellow'];
-            const borderColors = ['var(--neon-cyan)', 'var(--neon-green)', 'var(--neon-pink)', 'var(--neon-yellow)'];
-            const bgColors = ['rgba(0, 229, 255, 0.1)', 'rgba(0, 255, 65, 0.1)', 'rgba(255, 0, 128, 0.1)', 'rgba(255, 255, 0, 0.1)'];
+            const iconColors = ['icon-cyan', 'icon-green'];
+            const borderColors = ['var(--neon-cyan)', 'var(--neon-green)'];
+            const bgColors = ['rgba(0, 229, 255, 0.1)', 'rgba(0, 255, 65, 0.1)'];
             
             return (
               <button
                 key={feature.id}
                 onClick={() => setActiveFeature(feature.id)}
-                className="glass-card p-6 text-left w-full"
+                className="glass-card p-8 text-center w-full transition-all duration-300 hover:scale-105"
+                style={{
+                  border: `2px solid ${borderColors[index % 2]}`,
+                  boxShadow: `0 0 20px ${borderColors[index % 2]}40`
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = `0 0 30px ${borderColors[index % 2]}`
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = `0 0 20px ${borderColors[index % 2]}40`
+                }}
                 aria-label={`Open ${feature.title}: ${feature.description}`}
               >
-                <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4" style={{background: bgColors[index % 4], border: `2px solid ${borderColors[index % 4]}`}}>
-                  <IconComponent size={24} className={iconColors[index % 4]} aria-hidden="true" />
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 mx-auto" style={{background: bgColors[index % 2], border: `3px solid ${borderColors[index % 2]}`}}>
+                  <IconComponent size={40} className={iconColors[index % 2]} aria-hidden="true" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2 subheading-text">{feature.title}</h3>
-                <p className="paragraph-text">{feature.description}</p>
+                <h3 className="text-2xl font-bold mb-4 subheading-text">{feature.title}</h3>
+                <p className="paragraph-text text-lg">{feature.description}</p>
               </button>
             );
           })}

@@ -384,35 +384,67 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
   const [speakingPhrase, setSpeakingPhrase] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState<string | null>(null);
 
-  const { phrases: dbPhrases, loading, addPhrase: addPhraseToDb } = usePresetPhrases();
+  const { phrases: dbPhrases, categories: dbCategories, loading, addPhrase: addPhraseToDb, refetch } = usePresetPhrases();
 
   useEffect(() => {
-    if (!loading && dbPhrases.length > 0) {
-      // Merge database phrases with system categories
-      const updatedCategories = systemCategories.map(cat => {
-        const dbPhrasesForCategory = dbPhrases.filter(p => p.category === cat.name);
+    if (!loading) {
+      console.log('Processing database phrases:', dbPhrases)
+      console.log('Database categories:', dbCategories)
+      
+      // Start with system categories
+      const allCategories = [...systemCategories]
+      
+      // Add custom categories from database
+      dbCategories.forEach(catName => {
+        if (!systemCategories.find(sc => sc.name === catName)) {
+          allCategories.push({
+            id: catName.toLowerCase().replace(/\s+/g, '_'),
+            name: catName,
+            color: 'cyan',
+            isSystem: false,
+            phrases: []
+          })
+        }
+      })
+      
+      // Populate phrases for all categories
+      const updatedCategories = allCategories.map(cat => {
+        const dbPhrasesForCategory = dbPhrases.filter(p => p.category === cat.name)
         const convertedPhrases = dbPhrasesForCategory.map(p => ({
-          id: p.id,
+          id: p.id.toString(),
           text: p.phrase,
           language: 'en',
           useCount: p.usage_count || 0,
           isPinned: false,
-          createdAt: new Date(p.created_at).getTime()
-        }));
+          createdAt: new Date(p.created_at).getTime(),
+          isUserAdded: !p.is_default
+        }))
+        
         return {
           ...cat,
-          phrases: [...cat.phrases, ...convertedPhrases]
-        };
-      });
-      setCategories(updatedCategories);
-    } else {
-      setCategories(systemCategories);
+          phrases: cat.isSystem ? [...cat.phrases, ...convertedPhrases] : convertedPhrases
+        }
+      })
+      
+      console.log('Final categories:', updatedCategories)
+      setCategories(updatedCategories)
     }
-  }, [dbPhrases, loading]);
+  }, [dbPhrases, dbCategories, loading]);
 
+  // Refresh data when component mounts and when user changes
   useEffect(() => {
-    localStorage.setItem('presetPhrases', JSON.stringify(categories));
-  }, [categories]);
+    console.log('PresetPhrases component mounted, fetching data...')
+    refetch()
+  }, [])
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('Categories state updated:', categories)
+    console.log('Selected category:', selectedCategory)
+    console.log('Current category phrases:', currentCategory?.phrases?.length || 0)
+  }, [categories, selectedCategory])
+
+  // Remove localStorage dependency as we're using database
 
   const speakPhrase = (text: string, phraseId: string) => {
     if ('speechSynthesis' in window) {
@@ -436,46 +468,54 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
     
     const categoryName = currentCategory?.name || 'Custom';
     
-    // Add to database
-    const { error } = await addPhraseToDb(categoryName, newPhrase.trim());
-    
-    if (!error) {
-      // Add to local state
-      const phrase: Phrase = {
-        id: Date.now().toString(),
-        text: newPhrase.trim(),
-        language: 'en',
-        useCount: 0,
-        isPinned: false,
-        createdAt: Date.now()
-      };
+    try {
+      // Add to database
+      const { data, error } = await addPhraseToDb(categoryName, newPhrase.trim());
       
-      setCategories(prev => prev.map(cat => 
-        cat.id === selectedCategory 
-          ? { ...cat, phrases: [phrase, ...cat.phrases] }
-          : cat
-      ));
+      if (error) {
+        alert('Failed to save phrase: ' + error.message);
+        return;
+      }
+
+      if (data && data[0]) {
+        alert('Phrase added successfully!');
+        // Refresh data from database
+        await refetch();
+      }
+    } catch (err) {
+      alert('Failed to save phrase. Please try again.');
     }
     
     setNewPhrase('');
     setShowAddPhrase(false);
   };
 
-  const addCategory = () => {
+  const addCategory = async () => {
     if (!newCategoryName.trim()) return;
     
-    const category: Category = {
-      id: Date.now().toString(),
-      name: newCategoryName.trim(),
-      color: 'gray',
-      isSystem: false,
-      phrases: []
-    };
+    try {
+      // Add a placeholder phrase to create the category in database
+      const { data, error } = await addPhraseToDb(newCategoryName.trim(), 'Welcome to ' + newCategoryName.trim())
+      
+      if (error) {
+        alert('Failed to create category: ' + error.message)
+        return
+      }
+      
+      // Refresh data to show new category
+      await refetch()
+      
+      // Select the new category
+      const categoryId = newCategoryName.trim().toLowerCase().replace(/\s+/g, '_')
+      setSelectedCategory(categoryId)
+      
+      alert('Category created successfully!')
+    } catch (err) {
+      alert('Failed to create category. Please try again.')
+    }
     
-    setCategories(prev => [...prev, category]);
-    setNewCategoryName('');
-    setShowAddCategory(false);
-    setSelectedCategory(category.id);
+    setNewCategoryName('')
+    setShowAddCategory(false)
   };
 
   const deletePhrase = (phraseId: string) => {
@@ -642,50 +682,7 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
                   </div>
                 </button>
                 
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowMenu(showMenu === phrase.id ? null : phrase.id);
-                    }}
-                    className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm transition-all duration-300"
-                    style={{background: 'rgba(255, 255, 255, 0.1)'}}
-                    aria-label="More options"
-                  >
-                    <MoreHorizontal size={12} className="icon-white" />
-                  </button>
-                  
-                  {showMenu === phrase.id && (
-                    <div className="absolute right-0 top-8 glass-card rounded-lg py-1 z-10">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          togglePin(phrase.id);
-                          setShowMenu(null);
-                        }}
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-white/10 flex items-center space-x-2 subheading-text transition-colors duration-200"
-                      >
-                        <Pin size={12} className="icon-cyan" />
-                        <span>{phrase.isPinned ? 'Unpin' : 'Pin'}</span>
-                      </button>
-                      
-                      {!currentCategory?.isSystem && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deletePhrase(phrase.id);
-                            setShowMenu(null);
-                          }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-white/10 flex items-center space-x-2 transition-colors duration-200"
-                          style={{color: '#fca5a5'}}
-                        >
-                          <Trash2 size={12} />
-                          <span>Delete</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+
               </div>
             ))}
           </div>
@@ -697,7 +694,7 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="glass-card p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="heading-text-cyan text-xl">Add New Phrase</h3>
+              <h3 className="text-xl font-semibold" style={{color: 'var(--soft-white)', textShadow: '0 0 15px var(--neon-cyan)'}}>Add New Phrase</h3>
               <button
                 onClick={() => setShowAddPhrase(false)}
                 className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
@@ -759,7 +756,7 @@ const PresetPhrases: React.FC<PresetPhrasesProps> = ({ onClose }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="glass-card p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="heading-text-violet text-xl">Add New Category</h3>
+              <h3 className="text-xl font-semibold" style={{color: 'var(--soft-white)', textShadow: '0 0 15px var(--neon-violet)'}}>Add New Category</h3>
               <button
                 onClick={() => setShowAddCategory(false)}
                 className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
