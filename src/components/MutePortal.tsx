@@ -71,7 +71,7 @@ const MutePortal: React.FC<MutePortalProps> = ({ onBack }) => {
 
   if (activeFeature) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {renderFeature()}
       </div>
     );
@@ -80,36 +80,36 @@ const MutePortal: React.FC<MutePortalProps> = ({ onBack }) => {
   return (
     <div 
       ref={portalRef}
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8"
       tabIndex={-1}
       aria-label="Mute User Portal"
     >
       {/* Header */}
-      <div className="flex items-center mb-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center mb-6 sm:mb-8">
         <button
           onClick={onBack}
-          className="nav-item flex items-center space-x-2 mr-6"
+          className="nav-item flex items-center space-x-2 mb-4 sm:mb-0 sm:mr-6"
           aria-label="Go back to main page"
         >
-          <ArrowLeft size={24} className="icon-cyan" aria-hidden="true" />
-          <span>Back</span>
+          <ArrowLeft size={20} className="icon-cyan sm:w-6 sm:h-6" aria-hidden="true" />
+          <span className="text-sm sm:text-base">Back</span>
         </button>
         
-        <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{background: 'rgba(255, 0, 128, 0.2)', border: '2px solid var(--neon-pink)'}}>
-            <Volume2 size={24} className="icon-pink" aria-hidden="true" />
+        <div className="flex items-center space-x-3 sm:space-x-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center" style={{background: 'rgba(255, 0, 128, 0.2)', border: '2px solid var(--neon-pink)'}}>
+            <Volume2 size={20} className="icon-pink sm:w-6 sm:h-6" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="heading-text-pink text-3xl">Mute User Portal</h1>
-            <p className="paragraph-text">AI-powered voice communication tools</p>
+            <h1 className="heading-text-pink text-xl sm:text-2xl lg:text-3xl">Mute User Portal</h1>
+            <p className="paragraph-text text-sm sm:text-base">AI-powered voice communication tools</p>
           </div>
         </div>
       </div>
 
       {/* Features Grid */}
       <section role="region" aria-labelledby="features-grid">
-        <h2 id="features-grid" className="heading-text text-2xl mb-8 text-center">Communication Tools</h2>
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <h2 id="features-grid" className="heading-text text-lg sm:text-xl lg:text-2xl mb-6 sm:mb-8 text-center">Communication Tools</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto px-4">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             const iconColors = ['icon-pink', 'icon-cyan', 'icon-yellow'];
@@ -120,24 +120,24 @@ const MutePortal: React.FC<MutePortalProps> = ({ onBack }) => {
               <button
                 key={feature.id}
                 onClick={() => setActiveFeature(feature.id)}
-                className="glass-card p-8 text-center w-full transition-all duration-300 hover:scale-105"
+                className="glass-card p-4 sm:p-6 lg:p-8 text-center w-full transition-all duration-300 hover:scale-105"
                 style={{
                   border: `2px solid ${borderColors[index % 3]}`,
-                  boxShadow: `0 0 20px ${borderColors[index % 3]}40`
+                  boxShadow: `0 0 15px ${borderColors[index % 3]}40`
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = `0 0 30px ${borderColors[index % 3]}`
+                  e.currentTarget.style.boxShadow = `0 0 25px ${borderColors[index % 3]}`
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = `0 0 20px ${borderColors[index % 3]}40`
+                  e.currentTarget.style.boxShadow = `0 0 15px ${borderColors[index % 3]}40`
                 }}
                 aria-label={`Open ${feature.title}: ${feature.description}`}
               >
-                <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 mx-auto" style={{background: bgColors[index % 3], border: `3px solid ${borderColors[index % 3]}`}}>
-                  <IconComponent size={40} className={iconColors[index % 3]} aria-hidden="true" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center mb-3 sm:mb-4 lg:mb-6 mx-auto" style={{background: bgColors[index % 3], border: `2px sm:3px solid ${borderColors[index % 3]}`}}>
+                  <IconComponent size={24} className={`${iconColors[index % 3]} sm:w-8 sm:h-8 lg:w-10 lg:h-10`} aria-hidden="true" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4 subheading-text">{feature.title}</h3>
-                <p className="paragraph-text text-lg">{feature.description}</p>
+                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-2 sm:mb-3 lg:mb-4 subheading-text">{feature.title}</h3>
+                <p className="paragraph-text text-sm sm:text-base lg:text-lg">{feature.description}</p>
               </button>
             );
           })}
