@@ -32,6 +32,18 @@ export const useAuth = () => {
       }
     })
     
+    // Create user profile in database
+    if (data.user && !error) {
+      await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: data.user.id,
+          username,
+          email,
+          created_at: new Date().toISOString()
+        })
+    }
+    
     return { data, error }
   }
 
@@ -49,10 +61,39 @@ export const useAuth = () => {
   }
 
   const updateProfile = async (updates: any) => {
-    const { data, error } = await supabase.auth.updateUser({
-      data: updates
-    })
-    return { data, error }
+    try {
+      // Update auth user metadata
+      const { data: authData, error: authError } = await supabase.auth.updateUser({
+        email: updates.email,
+        data: {
+          username: updates.username,
+          avatar_url: updates.avatar_url
+        }
+      })
+      
+      if (authError) return { data: null, error: authError }
+      
+      // Update or insert user profile in database
+      const { data: profileData, error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert({
+          user_id: user?.id,
+          username: updates.username,
+          email: updates.email,
+          avatar_url: updates.avatar_url,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+      
+      if (profileError) {
+        console.error('Profile update error:', profileError)
+        // Don't fail if profile table doesn't exist, auth update succeeded
+      }
+      
+      return { data: authData, error: null }
+    } catch (error) {
+      return { data: null, error }
+    }
   }
 
   return {
